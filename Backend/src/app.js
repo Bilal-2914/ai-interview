@@ -6,20 +6,26 @@ const app = express()
 
 app.use(express.json())
 app.use(cookieParser())
-const allowedOrigin = process.env.ORIGIN || "http://localhost:5173";
+const allowedOrigins = [
+    "https://ai-interview-urx5.vercel.app",
+    "http://localhost:5173",
+    process.env.ORIGIN
+].filter(Boolean);
 
 app.use(cors({
     origin: (origin, callback) => {
         // allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
 
-        // Remove trailing slash from both for comparison
-        const normalizedAllowedOrigin = allowedOrigin.replace(/\/$/, "");
         const normalizedOrigin = origin.replace(/\/$/, "");
+        const isAllowed = allowedOrigins.some(allowed =>
+            allowed.replace(/\/$/, "") === normalizedOrigin
+        );
 
-        if (normalizedAllowedOrigin === normalizedOrigin) {
+        if (isAllowed) {
             callback(null, true);
         } else {
+            console.error(`CORS Blocked: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
